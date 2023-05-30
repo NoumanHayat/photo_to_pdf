@@ -1,16 +1,39 @@
+/* eslint-disable react/no-unstable-nested-components */
 /* eslint-disable prettier/prettier */
 import React, { useState } from 'react';
-import { Text, View, ImageBackground, Image, PermissionsAndroid, Platform, } from 'react-native';
+import { Text, View, ImageBackground, Image, PermissionsAndroid, Platform, StyleSheet, FlatList } from 'react-native';
 import Container from '../../components/Container';
 import ScreenHadar from '../../components/ScreenHader';
 import { COLORS } from '../../constants';
 import { FloatingAction } from 'react-native-floating-action';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import ImagePicker from 'react-native-image-crop-picker';
+import PhotoModalCard from '../../components/PhotoModalLayout';
 
 const Screen = ({ navigation }) => {
-    const [filePath, setFilePath] = useState({});
-    console.log(filePath);
+    const [filePath, setFilePath] = useState([]);
+    const [visible, setVisible] = useState(true);
+
+
+    // console.log(filePath[0]);
+    const DisplayCard = ({ item, index }) => {
+        return (
+            <PhotoModalCard
+                onClose={() => {
+                    const array = filePath;
+
+                    if (index > -1) { // only splice array when item is found
+                        array.splice(index, 1); // 2nd parameter means remove one item only
+                    }
+                    console.log(array);
+                    setFilePath(array);
+                    setVisible(!visible);
+                }}
+            >
+                <Image source={{ uri: item.path }} style={{ flex: 1 }} />
+            </PhotoModalCard>
+        )
+    };
     const actions = [
         {
             text: 'Use Camera',
@@ -25,152 +48,104 @@ const Screen = ({ navigation }) => {
             position: 2
         }
     ];
-    const requestCameraPermission = async () => {
-        if (Platform.OS === 'android') {
-            try {
-                const granted = await PermissionsAndroid.request(
-                    PermissionsAndroid.PERMISSIONS.CAMERA,
-                    {
-                        title: 'Camera Permission',
-                        message: 'App needs camera permission',
-                    },
-                );
-                // If CAMERA Permission is granted
-                return granted === PermissionsAndroid.RESULTS.GRANTED;
-            } catch (err) {
-                console.warn(err);
-                return false;
-            }
-        } else return true;
-    };
-
-    const requestExternalWritePermission = async () => {
-        if (Platform.OS === 'android') {
-            try {
-                const granted = await PermissionsAndroid.request(
-                    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-                    {
-                        title: 'External Storage Write Permission',
-                        message: 'App needs write permission',
-                    },
-                );
-                // If WRITE_EXTERNAL_STORAGE Permission is granted
-                return granted === PermissionsAndroid.RESULTS.GRANTED;
-            } catch (err) {
-                console.warn(err);
-                alert('Write permission err', err);
-            }
-            return false;
-        } else return true;
-    };
-    const captureImage = async type => {
-        let options = {
-            mediaType: type,
-            maxWidth: 300,
-            maxHeight: 550,
-            quality: 1,
-            videoQuality: 'low',
-            durationLimit: 30, //Video max duration in seconds
-            saveToPhotos: true,
-        };
-        let isCameraPermitted = await requestCameraPermission();
-        let isStoragePermitted = await requestExternalWritePermission();
-        if (isCameraPermitted && isStoragePermitted) {
-            launchCamera(options, response => {
-                console.log('Response = ', response);
-
-                if (response.didCancel) {
-                    alert('User cancelled camera picker');
-                    return;
-                } else if (response.errorCode == 'camera_unavailable') {
-                    alert('Camera not available on device');
-                    return;
-                } else if (response.errorCode == 'permission') {
-                    alert('Permission not satisfied');
-                    return;
-                } else if (response.errorCode == 'others') {
-                    alert(response.errorMessage);
-                    return;
-                }
-                console.log('base64 -> ', response.base64);
-                console.log('uri -> ', response.uri);
-                console.log('width -> ', response.width);
-                console.log('height -> ', response.height);
-                console.log('fileSize -> ', response.fileSize);
-                console.log('type -> ', response.type);
-                console.log('fileName -> ', response.fileName);
-                setFilePath(response);
-            });
-        }
-    };
-    const chooseFile = type => {
-        let options = {
-            mediaType: type,
-            maxWidth: 300,
-            maxHeight: 550,
-            quality: 1,
-            selectionLimit:10,
-            singleSelectedMode: false,
-             multiple: true
-
-        };
-        launchImageLibrary(options, response => {
-            console.log('Response = ', response);
-
-            if (response.didCancel) {
-                alert('User cancelled camera picker');
-                return;
-            } else if (response.errorCode == 'camera_unavailable') {
-                alert('Camera not available on device');
-                return;
-            } else if (response.errorCode == 'permission') {
-                alert('Permission not satisfied');
-                return;
-            } else if (response.errorCode == 'others') {
-                alert(response.errorMessage);
-                return;
-            }
-            console.log('base64 -> ', response.base64);
-            console.log('uri -> ', response.uri);
-            console.log('width -> ', response.width);
-            console.log('height -> ', response.height);
-            console.log('fileSize -> ', response.fileSize);
-            console.log('type -> ', response.type);
-            console.log('fileName -> ', response.fileName);
-            
-            setFilePath(response);
-        });
-    };
-    console.log(filePath);
     return (
         <Container>
             <ScreenHadar title="Photo to PDF converter" />
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <Image source={require('../../assect/background.png')} style={{ width: 200, height: 200 }} />
-                <View style={{ marginVertical: 20 }}>
+
+            {filePath[0] === undefined ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Image source={require('../../assect/background.png')} style={{ width: 200, height: 200 }} /><View style={{ marginVertical: 20 }}>
                     <Text style={{ fontSize: 20, color: COLORS.primary }}>No Image is selected.</Text>
                     <Text style={{ fontSize: 12, color: COLORS.black, marginVertical: 10 }}>Please select Images using Add button.</Text>
+                </View></View>) : (
+
+                <View style={{ flex: 1 }}>
+                    <FlatList
+                        data={filePath}
+                        renderItem={({ item, index }) => <DisplayCard item={item} index={index} />}
+                        keyExtractor={(item, index) => index}
+                    />
+                    {/* <DisplayCard /> */}
+                    {/* <DisplayCard /> 
+                     <DisplayCard />  */}
                 </View>
-                
-                {/* <Image source={{
+            )}
+
+
+            {/* <Image source={{
                     uri: 'file:///data/user/0/com.photo_to_pdf/cache/rn_image_picker_lib_temp_ad4ac9a4-f0f6-4e21-98bc-998999e18542.jpg',
                 }} style={{ width: 200, height: 200 }} /> */}
 
-                <FloatingAction
-                    actions={actions}
-                    onPressItem={name => {
-                        console.log(`selected button: ${name}`);
-                        if (name == 'Use Camera') {
-                            captureImage('photo')
-                        }
-                        if (name == 'From Folder') {
-                            chooseFile('photo')
-                        }
-                    }}
-                />
-            </View>
+            <FloatingAction
+                actions={actions}
+                onPressItem={name => {
+                    console.log(`selected button: ${name}`);
+                    if (name == 'Use Camera') {
+                        ImagePicker.openCamera({
+                            mediaType: 'photo',
+                        }).then(image => {
+                            console.log(image);
+                            setFilePath([image, ...filePath]);
+                        }).catch(err => {
+                            console.log(err);
+                        })
+                    }
+                    if (name == 'From Folder') {
+                        ImagePicker.openPicker({
+                            multiple: true,
+                            mediaType: 'photo'
+                        }).then(images => {
+                            console.log(images);
+                            setFilePath([...images, ...filePath]);
+                        }).catch(err => {
+                            console.log(err);
+                        })
+
+                    }
+                }}
+            />
+            <FloatingAction
+                // actions={actions}
+                position={'left'}
+                name={'Continue'}
+                color={'white'}
+                margin={20}
+                iconWidth={50}
+                iconHeight={50}
+                floatingIcon={require('../../assect/icons/next.png')}
+                buttonSize={60}
+                visible={filePath[0] != undefined}
+                // onPressItem={() => {
+                //     console.log('selected button');
+                // }}
+                onPressMain={() => {
+                    console.log('selected button');
+                }}
+            />
         </Container>
     );
 };
+const styles = StyleSheet.create({
 
+    modalView: {
+        width: "100%",
+        backgroundColor: "white",
+        borderRadius: 2,
+        // padding: 10,
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+        height: 202
+    },
+    centeredView: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        marginTop: 22,
+
+    },
+})
 export default Screen;
