@@ -12,7 +12,7 @@ import Container from './components/Container';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {NavigationContainer} from '@react-navigation/native';
 import Home from './code/screen/home';
-
+import Confirm from './code/screen/confirm';
 function AppStarting() {
   const Stack = createNativeStackNavigator();
 
@@ -23,8 +23,9 @@ function AppStarting() {
         screenOptions={{
           headerShown: false,
         }}
-        initialRouteName={'Home'}>
+        initialRouteName={'Confirm'}>
         <Stack.Screen name="Home" component={Home} />
+        <Stack.Screen name="Confirm" component={Confirm} />
       </Stack.Navigator>
     </NavigationContainer>
   );

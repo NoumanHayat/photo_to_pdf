@@ -114,11 +114,10 @@ const Screen = ({ navigation }) => {
                 floatingIcon={require('../../assect/icons/next.png')}
                 buttonSize={60}
                 visible={filePath[0] != undefined}
-                // onPressItem={() => {
-                //     console.log('selected button');
-                // }}
+                
                 onPressMain={() => {
-                    console.log('selected button');
+                    console.log(filePath);
+                     navigation.push('Confirm',filePath);
                 }}
             />
         </Container>

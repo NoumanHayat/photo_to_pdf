@@ -49,7 +49,7 @@ export default function AppInput({
           height: 'auto',
           fontSize: 10,
           marginLeft: 2,
-          color: 'gray',
+          color: 'black',
           paddingBottom: 7,
         }}
       />
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     // elevation: 2,
     marginTop: 20,
-    backgroundColor: COLORS.white,
+    backgroundColor: '#F3F4F7',
     marginBottom: 0,
   },
 });

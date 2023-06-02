@@ -32,7 +32,7 @@ export default function AppButton({
     <View
       style={{
         overflow: 'hidden',
-        backgroundColor: COLORS.dark,
+        backgroundColor: COLORS.primary,
         borderRadius: 5,
         ...style,
       }}>
